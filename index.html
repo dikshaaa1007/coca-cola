@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Coca-Cola Marketing Almanac</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Caveat:wght@700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --vintage-bg: #EAE3D2;
+            --vintage-grid: rgba(139, 69, 19, 0.08);
+            /* Sepia tinted grid */
+            --ink-black: #2c2725;
+            --coke-red: #A30000;
+            --coke-red-bright: #D90000;
+            --paper-border: rgba(139, 69, 19, 0.2);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            font-family: 'Playfair Display', serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Film Grain Overlay */
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            position: relative;
+            background-color: var(--vintage-bg);
+            background-image:
+                linear-gradient(var(--vintage-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--vintage-grid) 1px, transparent 1px);
+            background-size: 25px 25px;
+            box-shadow: inset 0 0 150px rgba(100, 50, 0, 0.15);
+            overflow: hidden;
+            /* Contains the slides */
+            color: var(--ink-black);
+            border-radius: 0;
+            border: none;
+        }
+
+        /* Vignette */
+        .presentation-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Page margin lines */
+        .margin-line-top,
+        .margin-line-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--paper-border);
+            z-index: 2;
+        }
+
+        .margin-line-top {
+            top: 8%;
+        }
+
+        .margin-line-bottom {
+            bottom: 8%;
+        }
+
+        /* Tape corners with enter animations */
+        .tape {
+            position: absolute;
+            width: clamp(80px, 10vw, 140px);
+            height: clamp(20px, 3vh, 35px);
+            background: rgba(220, 210, 180, 0.85);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .tape.top-left {
+            top: 2%;
+            left: -2%;
+            transform: rotate(-45deg);
+        }
+
+        .tape.top-right {
+            top: 2%;
+            right: -2%;
+            transform: rotate(45deg);
+        }
+
+        .tape.bottom-left {
+            bottom: 2%;
+            left: -2%;
+            transform: rotate(45deg);
+        }
+
+        .tape.bottom-right {
+            bottom: 2%;
+            right: -2%;
+            transform: rotate(-45deg);
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out;
+            padding: 8% 6%;
+            box-sizing: border-box;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+            /* Prevent cut off */
+        }
+
+        /* Hide scrollbar for slides but keep functionality */
+        .slide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Typography */
+        h1,
+        h2,
+        h3 {
+            margin: 0;
+            color: var(--ink-black);
+        }
+
+        .main-title {
+            font-size: clamp(2.5rem, 5vw, 6rem);
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 5px;
+            letter-spacing: -2px;
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+
+        .main-title span {
+            color: var(--coke-red);
+            text-shadow: 0 0 25px rgba(163, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-family: 'Caveat', cursive;
+            color: var(--coke-red-bright);
+            font-size: clamp(1.8rem, 3.5vw, 4rem);
+            transform: rotate(-3deg);
+            display: inline-block;
+            margin-top: 10px;
+            text-shadow: 0 0 15px rgba(217, 0, 0, 0.5), 1px 1px 2px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+        }
+
+        .page-title {
+            font-size: clamp(2rem, 3.5vw, 3.2rem);
+            font-weight: 900;
+            margin-bottom: 5px;
+            line-height: 1.1;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .page-subtitle {
+            font-family: 'Caveat', cursive;
+            color: var(--coke-red-bright);
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+            margin-bottom: 15px;
+            opacity: 0;
+        }
+
+        .metadata-top,
+        .metadata-top-right,
+        .metadata-bottom,
+        .metadata-bottom-right {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #5a504a;
+            position: absolute;
+            opacity: 0;
+            z-index: 20;
+        }
+
+        .metadata-top {
+            top: 4%;
+            left: 8%;
+            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            line-height: 1.8;
+        }
+
+        .metadata-top-right {
+            top: 6%;
+            right: 15%;
+            font-size: clamp(0.5rem, 0.8vw, 0.7rem);
+        }
+
+        .metadata-bottom {
+            bottom: 3%;
+            left: 8%;
+            font-size: clamp(0.5rem, 0.8vw, 0.7rem);
+        }
+
+        .metadata-bottom-right {
+            bottom: 3%;
+            right: 8%;
+            font-size: clamp(0.5rem, 0.8vw, 0.7rem);
+        }
+
+        .curator-info {
+            margin-top: 15px;
+            opacity: 0;
+        }
+
+        .curator-info .label {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.6rem, 1vw, 0.75rem);
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .curator-info .name {
+            font-size: clamp(1.2rem, 2vw, 1.8rem);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .curator-info .notes {
+            font-style: italic;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            color: #555;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        p,
+        li {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(0.9rem, 1.2vw, 1.15rem);
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* Layout Grid */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4vw;
+            height: 100%;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .metadata-top-right {
+                display: none;
+            }
+
+            .bottle-img-container {
+                height: 30vh !important;
+            }
+
+            .content-box {
+                margin-bottom: 10vh;
+            }
+        }
+
+        /* Badges and Stamps */
+        .badge {
+            position: absolute;
+            top: 2%;
+            right: 8%;
+            width: clamp(60px, 8vw, 100px);
+            height: clamp(60px, 8vw, 100px);
+            background: var(--coke-red);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px var(--coke-red), 0 0 40px 10px rgba(217, 0, 0, 0.9);
+            z-index: 10;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .badge span.num {
+            font-size: clamp(1.2rem, 3vw, 2.2rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+
+        .badge span.lbl {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.4rem, 0.8vw, 0.55rem);
+            letter-spacing: 1px;
+        }
+
+        .stamp {
+            position: absolute;
+            bottom: 15%;
+            right: 8%;
+            border: 3px solid var(--coke-red);
+            padding: clamp(10px, 2vw, 15px) clamp(15px, 3vw, 25px);
+            color: var(--coke-red);
+            font-family: 'Space Mono', monospace;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+            text-transform: uppercase;
+            text-align: center;
+            opacity: 0;
+            z-index: 10;
+            line-height: 1.4;
+            background: rgba(234, 227, 210, 0.6);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 0 20px rgba(163, 0, 0, 0.3), inset 0 0 10px rgba(163, 0, 0, 0.15);
+            text-shadow: 0 0 8px rgba(163, 0, 0, 0.5);
+        }
+
+        /* Navigation Controls */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(163, 0, 0, 0.3);
+            font-size: clamp(2rem, 5vw, 4rem);
+            cursor: pointer;
+            z-index: 100;
+            padding: 10px 20px;
+            transition: color 0.3s, transform 0.3s;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .nav-btn:hover {
+            color: var(--coke-red);
+            transform: translateY(-50%) scale(1.2);
+        }
+
+        .prev-btn {
+            left: 0;
+        }
+
+        .next-btn {
+            right: 0;
+        }
+
+        /* Images and Content Boxes */
+        .bottle-img-container {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+        }
+
+        .bottle-img {
+            max-height: 90%;
+            max-width: 100%;
+            object-fit: contain;
+            filter: drop-shadow(15px 15px 25px rgba(0, 0, 0, 0.4)) contrast(1.1) sepia(0.2);
+        }
+
+        .content-box {
+            border: 1px solid var(--paper-border);
+            padding: clamp(20px, 4vw, 40px);
+            background: rgba(255, 255, 255, 0.4);
+            position: relative;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            box-shadow: 0 10px 30px rgba(163, 0, 0, 0.08), inset 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .content-box::before {
+            content: 'FIELD NOTES';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--vintage-bg);
+            padding: 0 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            color: var(--coke-red);
+            font-weight: bold;
+        }
+
+        .content-box ul {
+            padding-left: 20px;
+            text-align: left;
+        }
+
+        .content-box li {
+            margin-bottom: 12px;
+        }
+
+        .typewriter {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.7rem, 1vw, 0.9rem);
+            color: #4a3f35;
+            line-height: 1.4;
+            opacity: 0;
+        }
+
+        .metric-stamp {
+            border: 2px dashed var(--paper-border);
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            transform: rotate(2deg);
+            opacity: 0;
+        }
+
+        .metric-stamp .num {
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 900;
+            color: var(--coke-red);
+            text-shadow: 0 0 15px rgba(163, 0, 0, 0.4);
+        }
+
+        .metric-stamp .desc {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- HIGH ANIMATIONS (Triggered when .active) --- */
+
+        /* Slide Animations */
+        .slide.active .main-title {
+            animation: slideInLeft 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+        }
+
+        .slide.active .subtitle {
+            animation: popInRotate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+        }
+
+        .slide.active .curator-info {
+            animation: fadeIn 1s ease 1s forwards;
+        }
+
+        .slide.active .bottle-img-container {
+            animation: floatBottle 6s ease-in-out infinite, slideInRight 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards;
+        }
+
+        .slide.active .stamp {
+            animation: stampDown 0.5s cubic-bezier(0.5, 0, 0.5, 2.5) 1.2s forwards;
+        }
+
+        /* Shared Animations */
+        .slide.active .badge {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s forwards;
+        }
+
+        .slide.active .metadata-top,
+        .slide.active .metadata-top-right,
+        .slide.active .metadata-bottom,
+        .slide.active .metadata-bottom-right {
+            animation: fadeIn 1s ease 0.5s forwards;
+        }
+
+        /* Content Slides Animations */
+        .slide.active .page-title {
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+        }
+
+        .slide.active .page-subtitle {
+            animation: fadeIn 0.8s ease 0.5s forwards;
+        }
+
+        .slide.active .content-box {
+            animation: slideUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards;
+        }
+
+        .slide.active .typewriter {
+            animation: typeReveal 1s steps(40, end) 0.8s forwards;
+        }
+
+        .slide.active .metric-stamp {
+            animation: stampDown 0.5s cubic-bezier(0.5, 0, 0.5, 2.5) 1.4s forwards;
+        }
+
+        .slide.active .figure-img-container {
+            animation: popIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards;
+        }
+
+        /* Keyframes */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes popInRotate {
+            from {
+                opacity: 0;
+                transform: scale(0.8) rotate(-10deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(-3deg);
+            }
+        }
+
+        @keyframes stampDown {
+            from {
+                opacity: 0;
+                transform: scale(2) rotate(0deg);
+            }
+
+            to {
+                opacity: 0.85;
+                transform: scale(1) rotate(var(--rotation, -8deg));
+            }
+        }
+
+        @keyframes floatBottle {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typeReveal {
+            from {
+                opacity: 0;
+                clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            }
+
+            to {
+                opacity: 1;
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+        }
+
+        /* Dynamic Stamp Rotations */
+        #slide-0 .stamp {
+            --rotation: -8deg;
+        }
+
+        #slide-1 .metric-stamp {
+            --rotation: 2deg;
+        }
+
+        #slide-2 .metric-stamp {
+            --rotation: -3deg;
+        }
+
+        #slide-3 .metric-stamp {
+            --rotation: 4deg;
+        }
+
+        #slide-4 .metric-stamp {
+            --rotation: -1deg;
+        }
+
+        #slide-5 .metric-stamp {
+            --rotation: 3deg;
+        }
+
+        #slide-6 .metric-stamp {
+            --rotation: -2deg;
+        }
+
+        #slide-7 .metric-stamp {
+            --rotation: 5deg;
+        }
+
+        #slide-8 .metric-stamp {
+            --rotation: -4deg;
+        }
+
+        #slide-9 .metric-stamp {
+            --rotation: 2deg;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="grain"></div>
+
+    <div class="presentation-container">
+
+        <div class="margin-line-top"></div>
+        <div class="margin-line-bottom"></div>
+
+        <div class="tape top-left"></div>
+        <div class="tape top-right"></div>
+        <div class="tape bottom-left"></div>
+        <div class="tape bottom-right"></div>
+
+        <button class="nav-btn prev-btn" onclick="prevSlide()">&#10094;</button>
+        <button class="nav-btn next-btn" onclick="nextSlide()">&#10095;</button>
+
+        <!-- Slide 0: Cover -->
+        <div class="slide active" id="slide-0">
+            <div class="metadata-top">
+                EST. 1886 · VOL. MMXXVI<br>ISSUE 01<br>
+                <span
+                    style="font-family: 'Playfair Display', serif; font-style: italic; text-transform: none; letter-spacing: 0;">A
+                    field-notebook on iconic marketing.</span>
+            </div>
+            <div class="metadata-top-right">A CURATOR'S REASSEMBLY</div>
+
+            <div class="badge">
+                <span class="num">00</span>
+                <span class="lbl">COVER PLATE</span>
+            </div>
+
+            <div class="grid-2col" style="max-height: 80vh; margin-top: 5vh; gap: 2vw;">
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="main-title" style="font-size: clamp(2rem, 4vw, 4rem);">The
+                        Liquid<br><span>Legacy.</span></div>
+                    <div class="subtitle" style="font-size: clamp(1.2rem, 2vw, 2.5rem);">Reimagining Real Magic.</div>
+
+                    <div class="content-box" style="margin-top: 35px; padding: clamp(15px, 2vw, 25px);">
+                        <p style="margin:0; font-size: clamp(0.7rem, 0.9vw, 1rem); line-height: 1.4;">Hello everyone,
+                            and welcome to "The Liquid Legacy: Reimagining Real Magic." We're here to explore how
+                            Coca-Cola's iconic marketing can evolve for 2026 and beyond. This presentation is my
+                            submission for the Coca-Cola Mantra Challenge, and I'm thrilled to share my vision with you.
+                            We'll journey through some of Coca-Cola's most memorable campaigns, seeing how their magic
+                            can be reimagined for a digital-first future. Get ready to dive into a world where heritage
+                            meets innovation.</p>
+                    </div>
+                </div>
+
+                <div class="bottle-img-container" style="height: auto;">
+                    <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/cover_bottle_notebook_1782938991259.png"
+                        alt="Cover Bottle Notebook" class="bottle-img"
+                        style="max-height: 60vh; border: 2px solid var(--paper-border); background: white; padding: 15px; transform: rotate(2deg);">
+                </div>
+            </div>
+
+            <div class="stamp">
+                APPROVED FOR<br>SUBMISSION<br>
+            </div>
+
+            <div class="metadata-bottom">"The Liquid Legacy" - DIKSHA - 2026</div>
+            <div class="metadata-bottom-right">FOLIO - I</div>
+        </div>
+
+        <!-- Slide 1: Decoding -->
+        <div class="slide" id="slide-1">
+            <div class="metadata-top">CASE FILE: THE MISSION</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">01</span>
+                <span class="lbl">CHALLENGE</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">Decoding<br>Iconic Marketing.</div>
+                    <div class="page-subtitle">The Challenge</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Last year, we saw how Coca-Cola built an incredible legacy. Now, let's
+                            decode what makes that marketing truly iconic. It's not just about selling a product; it's
+                            about owning a cultural moment. We'll explore how storytelling and cultural relevance shaped
+                            Coca-Cola's most memorable campaigns. Our mission is to reimagine this rich heritage through
+                            a modern, digital-first lens. We're shifting our focus from simply selling a drink to
+                            sharing a feeling, creating deeper connections with consumers. This sets the stage for how
+                            we'll reimagine specific campaigns.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 01</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/decoding_magnifying_glass_1782939001130.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Decoding Marketing">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [STRATEGIC SHIFT]<br>
+                            From simply selling a drink to sharing a feeling.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">2026</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">The Vision</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - II</div>
+        </div>
+
+        <!-- Slide 2: Hilltop -->
+        <div class="slide" id="slide-2">
+            <div class="metadata-top">CASE FILE: 1971 / 2026</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">02</span>
+                <span class="lbl">HILLTOP</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The Hilltop<br>2.0.</div>
+                    <div class="page-subtitle">1971 Reimagined</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Building on that idea of sharing a feeling, let's look at "The Hilltop"
+                            from 1971. This was the first global viral moment before the internet even existed. In 2026,
+                            we don't just buy a Coke; we co-create the magic. We're moving from a hilltop in Italy to a
+                            global, decentralized metaverse "Hilltop" where every voice adds to the harmony. Unity is no
+                            longer just a song; it's a real-time, interactive global connection. And this idea of active
+                            participation carries into our next reimagined campaign.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 02</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/hilltop_metaverse_red_1782939013415.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Hilltop Metaverse">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Unity is no longer just a song; it's a real-time, interactive global connection.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">WEB3</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Decentralized</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - III</div>
+        </div>
+
+        <!-- Slide 3: Polar Bears -->
+        <div class="slide" id="slide-3">
+            <div class="metadata-top">CASE FILE: 1993 / 2026</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">03</span>
+                <span class="lbl">ARCTIC</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The Polar<br>Bears.</div>
+                    <div class="page-subtitle">1993 Reimagined</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Following our journey of interactive connection, we arrive at the beloved
+                            Polar Bears from 1993. These bears brought emotion and personality to the brand, creating a
+                            universal symbol of joy. We're reimagining this by using AR/VR to bring the Polar Bears into
+                            our living rooms as ambassadors of sustainability and joy. We're moving from watching the
+                            bears to walking with the bears. Emotional storytelling evolves from passive observation to
+                            active participation, making the magic even more tangible. Now, let's explore how we can
+                            personalize this magic even further.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 03</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/polar_bear_ar_1782939024913.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Arctic Polar Bear AR">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Moving from watching the bears to walking with the bears.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">AR/VR</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Immersion</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - IV</div>
+        </div>
+
+        <!-- Slide 4: Share a Coke -->
+        <div class="slide" id="slide-4">
+            <div class="metadata-top">CASE FILE: 2011 / 2026</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">04</span>
+                <span class="lbl">SHARE</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">Share a<br>Coke.</div>
+                    <div class="page-subtitle">2011 Reimagined</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Expanding on the theme of personal connection, "Share a Coke" from 2011
+                            turned a mass-produced product into a personal treasure. For 2026, we're reimagining this as
+                            "Share a Vibe." We'll use AI to generate personalized labels based on a user's digital mood
+                            or creative "vibe." This moves beyond names to unique, AI-generated art on every bottle.
+                            Hyper-personalization is the new standard for consumer connection, making every interaction
+                            truly unique. Next, we'll see how this ties into a broader artistic vision.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 04</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/share_vibe_blueprint_1782939035186.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Share a Vibe AI">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Hyper-personalization is the new standard for consumer connection.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">AI</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Generative</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - V</div>
+        </div>
+
+        <!-- Slide 5: Masterpiece Lens -->
+        <div class="slide" id="slide-5">
+            <div class="metadata-top">CASE FILE: ART & INNOVATION</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">05</span>
+                <span class="lbl">MUSE</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The "Masterpiece"<br>Lens.</div>
+                    <div class="page-subtitle">Art Meets Innovation</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">The 2023 "Masterpiece" campaign showed us that Coke is a muse for every
+                            artist. We're taking that idea and making every digital interaction a work of art. This
+                            perspective treats every LinkedIn post as a "Digital Masterpiece," where the iconic bottle
+                            becomes our brush. We're bridging the gap between Andy Warhol's pop art and today's
+                            fast-paced scroll culture. This approach ensures our storytelling remains culturally
+                            relevant, shaping memorable brand moments. Now, let's dive into the unique design philosophy
+                            that brings this vision to life.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 05</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/masterpiece_palette_1782939045518.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Masterpiece Palette">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Bridging the gap between Andy Warhol's pop art and today's fast-paced scroll culture.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">MUSE</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Creativity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - VI</div>
+        </div>
+
+        <!-- Slide 6: Design Philosophy -->
+        <div class="slide" id="slide-6">
+            <div class="metadata-top">CASE FILE: AESTHETICS</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">06</span>
+                <span class="lbl">DESIGN</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The Design<br>Philosophy.</div>
+                    <div class="page-subtitle">A Template Born from Fizz & Flow</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Our design philosophy, "Fizz & Flow," explains why this presentation looks
+                            so different. We call it "Liquid UI," a design language where elements flow organically,
+                            moving away from static boxes. We use dynamic glassmorphism and glowing red accents, making
+                            every element feel like it's emitting light. This captures the "Real Magic" essence. It's
+                            about bridging 140 years of heritage with a futuristic aesthetic, maintaining that iconic
+                            red soul. This unique design sets the stage for our LinkedIn strategy.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 06</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/fizz_flow_ui_1782939057107.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Fizz Flow UI">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Liquid UI: A design language where elements flow organically, emitting the Real Magic
+                            essence.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">FLOW</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Liquid UI</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - VII</div>
+        </div>
+
+        <!-- Slide 7: LinkedIn Strategy -->
+        <div class="slide" id="slide-7">
+            <div class="metadata-top">CASE FILE: COMMUNITY</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">07</span>
+                <span class="lbl">SOCIAL</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The LinkedIn<br>Strategy.</div>
+                    <div class="page-subtitle">#CokeAmbassador Narrative</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Our LinkedIn strategy isn't just about posting; it's about sparking
+                            conversations and building community. We're crafting multi-format posts that bridge classic
+                            art with today's scroll culture, making the bottle our brush. We invite users to "Reimagine
+                            their favorite Coke moment," turning a single post into a decentralized brand gallery. This
+                            strategy uses hashtags like #CokeAmbassador and #RealMagic to engage the community and drive
+                            participation. This approach shows how we connect heritage with innovation.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 07</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/linkedin_network_map_1782939067463.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="LinkedIn Network Map">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Turning a single post into a massive, decentralized global brand gallery.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">10x</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Engagement</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - VIII</div>
+        </div>
+
+        <!-- Slide 8: Heritage & Innovation -->
+        <div class="slide" id="slide-8">
+            <div class="metadata-top">CASE FILE: THE FUTURE</div>
+            <div class="badge"
+                style="background: #2a2522; box-shadow: inset 0 0 0 3px var(--vintage-bg), inset 0 0 0 5px #2a2522, 0 0 40px 10px rgba(255, 255, 255, 0.7);">
+                <span class="num">08</span>
+                <span class="lbl">LEGACY</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">Heritage &<br>Innovation.</div>
+                    <div class="page-subtitle">The Intersection</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">Coca-Cola's enduring strength comes from its ability to remain authentic
+                            while constantly evolving. Authenticity is our unchanging secret ingredient. We use
+                            cutting-edge technology like AI, Web3, and AR to make that authenticity feel "Real" in a
+                            virtual world. This intersection of heritage and innovation is where 140 years of history
+                            meet tomorrow's limitless potential. Heritage is our anchor; innovation is our sail. And
+                            this leads us to the final pitch.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="figure-img-container" style="margin-bottom: 20px; position: relative; opacity: 0;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 08</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/anchor_and_sail_1782939077637.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Anchor and Sail">
+                    </div>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                        <p class="typewriter" style="flex: 1; margin: 0; font-size: clamp(0.6rem, 0.8vw, 0.8rem);">
+                            [OBSERVATION NOTES]<br>
+                            Heritage is our anchor; innovation is our sail. We make authenticity feel "Real" in a
+                            virtual world.
+                        </p>
+                        <div class="metric-stamp" style="margin: 0; padding: 10px;">
+                            <div class="num" style="font-size: clamp(1.2rem, 2vw, 1.8rem);">140</div>
+                            <div class="desc" style="font-size: clamp(0.5rem, 0.6vw, 0.6rem);">Years of History</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - IX</div>
+        </div>
+
+        <!-- Slide 9: Final Pitch -->
+        <div class="slide" id="slide-9">
+            <div class="metadata-top">SUMMARY & PLEDGE</div>
+            <div class="badge">
+                <span class="num">09</span>
+                <span class="lbl">VISION</span>
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <div class="page-title">The Next Coke<br>Ambassador.</div>
+                    <div class="page-subtitle">Final Pitch – Diksha</div>
+
+                    <div class="content-box">
+                        <p style="margin:0;">I don't just see a brand; I see a canvas for global connection. I am ready
+                            to bring unprecedented creativity and innovation to the Coca-Cola Ambassador role. My
+                            commitment is to lead the next century of magic, building on the foundation of this
+                            presentation. Let's make the next 100 years even more magical, together.</p>
+                    </div>
+                </div>
+                <div
+                    style="padding: 4%; border-left: 1px solid var(--paper-border); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <div class="figure-img-container"
+                        style="margin-bottom: 20px; position: relative; opacity: 0; width: 100%;">
+                        <div
+                            style="position: absolute; top: -10px; left: -10px; background: var(--coke-red); color: white; padding: 5px 10px; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 2;">
+                            FIG. 09</div>
+                        <img src="file:///C:/Users/dhrum/.gemini/antigravity-ide/brain/59a27b5e-6b24-4034-8b94-526774e56b4a/blank_canvas_easel_1782939087269.png"
+                            style="width: 100%; max-height: 250px; object-fit: cover; border: 1px solid var(--paper-border); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); padding: 10px; background: #fdfbf7;"
+                            alt="Blank Canvas">
+                    </div>
+                    <h3
+                        style="font-size: clamp(1.5rem, 2vw, 2.2rem); color: var(--coke-red); margin-bottom: 20px; line-height: 1.2;">
+                        Let's Create<br>the Future,<br>Together.</h3>
+                    <p class="typewriter"
+                        style="font-weight: bold; border-top: 2px solid var(--ink-black); border-bottom: 2px solid var(--ink-black); padding: 10px 0; width: 100%; opacity: 1;">
+                        SUBMISSION BY DIKSHA
+                    </p>
+                </div>
+            </div>
+            <div class="metadata-bottom-right">FOLIO - X</div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                // We use a tiny timeout to allow the browser to process the class removal before adding it back
+                // This ensures CSS animations replay when navigating backwards/forwards
+                slide.classList.remove('active');
+                if (i === index) {
+                    setTimeout(() => {
+                        slide.classList.add('active');
+                    }, 50);
+                }
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+
+</html>
